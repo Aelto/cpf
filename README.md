@@ -1,2 +1,2 @@
 # cpf
-c++ filesystem utility
+rust filesystem utility
