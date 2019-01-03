@@ -39,16 +39,31 @@ fn copy(origin: &str, destination: &str) {
   if origin_path.is_file() {
     let destination_path = Path::new(destination);
 
-    if destination_path.is_dir() {
-      // do something if directory
-    }
+    if let Ok(origin_content) = fs::read_to_string(origin) {
+      // if 'destination' points to a directory
+      // create a new file named like the 'origin' file
+      if destination_path.is_dir() {
+        if let Some(origin_file_name) = origin_path.file_name().and_then(|name| name.to_str()) {
+          let full_destination_path = destination_path.join(origin_file_name);
 
-    if destination_path.is_file() {
-      // do something if file
-      
+          match fs::write(full_destination_path, origin_content) {
+            Ok(_) => println!("copied {} to {}", origin, destination_path.join(origin_file_name).to_str().unwrap()),
+            Err(e) => println!("error when writing to destination {}", e)
+          };
+        } else {
+
+        }
+      } else {
+        if destination_path.is_file() {
+          // prompt asking for confirmation
+        }
+
+        // overwrite
+      }
+    } else {
+      println!("could not read origin {}", origin);
     }
-  }
-  else {
+  } else {
     println!("no such file {}", origin);
   }
 }
@@ -62,20 +77,40 @@ fn main() {
       SubCommand::with_name("touch")
         .version("0.1")
         .about("creates an empty file")
-        .arg(Arg::with_name("filename").index(1).help("the file name").required(true)),
+        .arg(
+          Arg::with_name("filename")
+            .index(1)
+            .help("the file name")
+            .required(true),
+        ),
     )
     .subcommand(
       SubCommand::with_name("cat")
         .version("0.1")
         .about("reads a file's content")
-        .arg(Arg::with_name("filename").index(1).help("the file name").required(true))
+        .arg(
+          Arg::with_name("filename")
+            .index(1)
+            .help("the file name")
+            .required(true),
+        ),
     )
     .subcommand(
       SubCommand::with_name("cp")
         .version("0.1")
         .about("copy a file's content to another file")
-        .arg(Arg::with_name("origin").index(1).help("the origin path").required(true))
-        .arg(Arg::with_name("destination").index(2).help("the destination file").required(true))
+        .arg(
+          Arg::with_name("origin")
+            .index(1)
+            .help("the origin path")
+            .required(true),
+        )
+        .arg(
+          Arg::with_name("destination")
+            .index(2)
+            .help("the destination file")
+            .required(true),
+        ),
     )
     .get_matches();
 
