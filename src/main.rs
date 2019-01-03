@@ -18,6 +18,19 @@ fn touch(filename: &str) {
   }
 }
 
+fn cat(filename: &str) {
+  let filepath = Path::new(filename);
+
+  if filepath.is_file() {
+    match fs::read_to_string(filename) {
+      Ok(c) => println!("{}", c),
+      Err(e) => println!("{}", e),
+    };
+  } else {
+    println!("no such file {}", filename);
+  }
+}
+
 fn main() {
   let matches = App::new("rsf")
     .version("0.1")
@@ -29,6 +42,12 @@ fn main() {
         .about("creates an empty file")
         .arg(Arg::with_name("filename").index(1).help("the file name")),
     )
+    .subcommand(
+      SubCommand::with_name("cat")
+        .version("0.1")
+        .about("reads a file's content")
+        .arg(Arg::with_name("filename").index(1).help("the file name"))
+    )
     .get_matches();
 
   if let Some(matches) = matches.subcommand_matches("touch") {
@@ -37,4 +56,11 @@ fn main() {
       None => println!("{}", matches.usage()),
     }
   };
+
+  if let Some(matches) = matches.subcommand_matches("cat") {
+    match matches.value_of("filename") {
+      Some(v) => cat(v),
+      None => println!("{}", matches.usage()),
+    }
+  }
 }

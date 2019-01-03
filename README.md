@@ -1,2 +1,2 @@
-# cpf
+# rsf
 rust filesystem utility
