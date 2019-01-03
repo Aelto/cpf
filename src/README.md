@@ -1,2 +1,0 @@
-# rsf
-rust filesystem utility
