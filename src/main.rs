@@ -1,4 +1,5 @@
 extern crate clap;
+extern crate termcolor;
 
 use std::fs;
 use std::path::Path;
@@ -91,16 +92,25 @@ fn copy(origin: &str, destination: &str) {
 }
 
 fn list() {
+  use std::io::Write;
+  use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+
   match fs::read_dir(Path::new(".")) {
     Ok(it) => {
       for entry in it {
         match entry {
           Ok(entry) => {
             if entry.path().is_dir() {
-              print!("{}/ ", entry.file_name());
+              let mut stdout = StandardStream::stdout(ColorChoice::Always);
+              
+              if let Err(error) = stdout.set_color(ColorSpec::new().set_fg(Some(Color::Green)))
+              .and_then(|()| write!(&mut stdout, "{} ", entry.file_name().into_string().unwrap_or(String::new())))
+              .and_then(|()| stdout.reset()) {
+                println!("error during stdout access {}", error);
+              };
             }
             else {
-              print!("{} ", entry.file_name());
+              print!("{} ", entry.file_name().into_string().unwrap_or(String::new()));
             }
           },
           Err(error) => {
