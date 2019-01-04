@@ -2,8 +2,22 @@ extern crate clap;
 
 use std::fs;
 use std::path::Path;
+use std::io;
 
 use clap::{App, Arg, SubCommand};
+
+fn prompt() -> String {
+  let mut answer = String::new();
+
+  match io::stdin().read_line(&mut answer) {
+    Ok(_) => answer,
+    Err(err) => {
+      println!("error: {}", err);
+
+      String::new()
+    },
+  }
+}
 
 fn touch(filename: &str) {
   let filepath = Path::new(filename);
@@ -56,15 +70,48 @@ fn copy(origin: &str, destination: &str) {
       } else {
         if destination_path.is_file() {
           // prompt asking for confirmation
+          println!("file {} already exists, do you want to overwrite it? [y/N]", destination);
+          let answer = prompt();
+          if !answer.starts_with("y") {
+            return;
+          }
         }
 
-        // overwrite
+        match fs::write(destination_path, origin_content) {
+          Ok(_) => println!("copied {} to {}", origin, destination_path.to_str().unwrap()),
+          Err(e) => println!("error when writing to destination {}", e)
+        };
       }
     } else {
       println!("could not read origin {}", origin);
     }
   } else {
     println!("no such file {}", origin);
+  }
+}
+
+fn list() {
+  match fs::read_dir(Path::new(".")) {
+    Ok(it) => {
+      for entry in it {
+        match entry {
+          Ok(entry) => {
+            if entry.path().is_dir() {
+              print!("{}/ ", entry.file_name());
+            }
+            else {
+              print!("{} ", entry.file_name());
+            }
+          },
+          Err(error) => {
+            println!("error: {}", error);
+          }
+        }
+      }
+    },
+    Err(error) => {
+      println!("error: {}", error);
+    }
   }
 }
 
@@ -119,16 +166,16 @@ fn main() {
       Some(v) => touch(v),
       None => println!("{}", matches.usage()),
     }
-  };
+  }
 
-  if let Some(matches) = matches.subcommand_matches("cat") {
+  else if let Some(matches) = matches.subcommand_matches("cat") {
     match matches.value_of("filename") {
       Some(v) => cat(v),
       None => println!("{}", matches.usage()),
     }
   }
 
-  if let Some(matches) = matches.subcommand_matches("cp") {
+  else if let Some(matches) = matches.subcommand_matches("cp") {
     if !matches.is_present("origin") || !matches.is_present("destination") {
       println!("{}", matches.usage());
 
@@ -139,5 +186,9 @@ fn main() {
     let destination = matches.value_of("destination").unwrap();
 
     copy(origin, destination);
+  }
+
+  else {
+    list();
   }
 }
