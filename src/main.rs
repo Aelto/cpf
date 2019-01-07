@@ -51,9 +51,10 @@ fn main() {
         ),
     )
     .subcommand(
-      SubCommand::with_name("rn")
+      SubCommand::with_name("mv")
+        .alias("rn")
         .version("0.1")
-        .about("rename a file")
+        .about("move or rename a file, has an alias `rn`")
         .arg(
           Arg::with_name("origin")
             .index(1)
@@ -90,7 +91,7 @@ fn main() {
     let destination = matches.value_of("destination").unwrap();
 
     commands::copy::copy(origin, destination);
-  } else if let Some(matches) = matches.subcommand_matches("rn") {
+  } else if let Some(matches) = matches.subcommand_matches("mv") {
     if !matches.is_present("origin") || !matches.is_present("destination") {
       println!("{}", matches.usage());
 
