@@ -3,10 +3,9 @@ use std::path::Path;
 use std::io;
 
 fn copy_into_dir(origin_path: &Path, destination_path: &Path) -> io::Result<()> {
-  let origin_content = fs::read_to_string(origin_path)?;
   let full_destination_path = destination_path.join(origin_path);
-
-  fs::write(full_destination_path, origin_content)
+  fs::copy(origin_path, full_destination_path)?;
+  Ok(())
 }
 
 fn copy_into_file(origin_path: &Path, destination_path: &Path) -> io::Result<()> {
@@ -19,19 +18,18 @@ fn copy_into_file(origin_path: &Path, destination_path: &Path) -> io::Result<()>
 
     let answer = super::super::prompt::prompt();
     if !answer.starts_with("y") {
-      return Ok(());
+      return Err(io::Error::new(io::ErrorKind::Other, "cancelled"));
     }
   }
 
-  let origin_content = fs::read_to_string(origin_path)?;
-
-  fs::write(destination_path, origin_content)
+  fs::copy(origin_path, destination_path)?;
+  Ok(())
 }
 
 pub fn copy(origin: &str, destination: &str) {
   let origin_path = Path::new(origin);
 
-  if !origin_path.is_file() {
+  if !origin_path.exists() {
     println!("no such file {}", origin);
 
     return;
@@ -51,10 +49,6 @@ pub fn copy(origin: &str, destination: &str) {
       origin,
       destination_path.to_str().unwrap()
     ),
-    Err(e) => println!("error during copy from {} to {}: {}", 
-      origin,
-      destination_path.to_str().unwrap(),
-      e
-    ),
+    Err(e) => println!("copy error: {}",e),
   };
 }
