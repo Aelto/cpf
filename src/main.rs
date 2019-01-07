@@ -50,6 +50,23 @@ fn main() {
             .required(true),
         ),
     )
+    .subcommand(
+      SubCommand::with_name("rn")
+        .version("0.1")
+        .about("rename a file")
+        .arg(
+          Arg::with_name("origin")
+            .index(1)
+            .help("path to the source file")
+            .required(true)
+        )
+        .arg(
+          Arg::with_name("destination")
+            .index(2)
+            .help("new file name")
+            .required(true)
+        )
+    )
     .get_matches();
 
   if let Some(matches) = matches.subcommand_matches("touch") {
@@ -73,6 +90,17 @@ fn main() {
     let destination = matches.value_of("destination").unwrap();
 
     commands::copy::copy(origin, destination);
+  } else if let Some(matches) = matches.subcommand_matches("rn") {
+    if !matches.is_present("origin") || !matches.is_present("destination") {
+      println!("{}", matches.usage());
+
+      return;
+    }
+
+    let origin = matches.value_of("origin").unwrap();
+    let destination = matches.value_of("destination").unwrap();
+
+    commands::rename::rename(origin, destination);
   } else {
     commands::list::list();
   }
